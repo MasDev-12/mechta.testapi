@@ -38,3 +38,17 @@ type DeleteUrlByShortNameResponse struct {
 	Result bool  `json:"result"`
 	Error  error `json:"error"`
 }
+
+type GetUrlStatByShortNameResponse struct {
+	OriginalURL    *string    `json:"original_url"`
+	IsActive       *bool      `json:"is_active"`
+	ExpiresAt      *time.Time `json:"expires_at"`
+	ClickCount     *int       `json:"click_count"`
+	LastAccessedAt *time.Time `json:"last_accessed_at"`
+	Error          error      `json:"error"`
+}
+
+type GetUrlByOriginalNameResponse struct {
+	OriginalURL *string `json:"original_url"`
+	Error       error   `json:"error"`
+}

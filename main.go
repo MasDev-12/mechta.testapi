@@ -1,24 +1,36 @@
 package main
 
 import (
-  "fmt"
+	"github.com/MasDev-12/mechta.testapi/config"
+	"github.com/MasDev-12/mechta.testapi/servers"
+	"log"
 )
 
 //TIP To run your code, right-click the code and select <b>Run</b>. Alternatively, click
 // the <icon src="AllIcons.Actions.Execute"/> icon in the gutter and select the <b>Run</b> menu item from here.
 
 func main() {
-  //TIP Press <shortcut actionId="ShowIntentionActions"/> when your caret is at the underlined or highlighted text
-  // to see how GoLand suggests fixing it.
-  s := "gopher"
-  fmt.Println("Hello and welcome, %s!", s)
-
-  for i := 1; i <= 5; i++ {
-	//TIP You can try debugging your code. We have set one <icon src="AllIcons.Debugger.Db_set_breakpoint"/> breakpoint
-	// for you, but you can always add more by pressing <shortcut actionId="ToggleLineBreakpoint"/>. To start your debugging session, 
-	// right-click your code in the editor and select the <b>Debug</b> option. 
-	fmt.Println("i =", 100/i)
-  }
+	defer func() {
+		if r := recover(); r != nil {
+			log.Fatalf("Recovered from panic: %v", r)
+		}
+	}()
+	dbSetting, err := config.LoadSettingsDb("tsconfig.json")
+	if err != nil {
+		panic(err)
+	}
+	serverSetting, err := config.LoadSettingServer("tsconfig.json")
+	if err != nil {
+		panic(err)
+	}
+	argon2Setting, err := config.LoadSettingArgon2("tsconfig.json")
+	if err != nil {
+		panic(err)
+	}
+	restServer := servers.NewRestServer(serverSetting, dbSetting, argon2Setting)
+	if err := restServer.Start(); err != nil {
+		log.Fatalf("Failed to start REST server: %v", err)
+	}
 }
 
 //TIP See GoLand help at <a href="https://www.jetbrains.com/help/go/">jetbrains.com/help/go/</a>.

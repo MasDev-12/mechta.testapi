@@ -170,11 +170,11 @@ func (service *URLService) GetUrlByShortName(request requests.GetUrlByShortNameR
 	}
 }
 
-func (service *URLService) DeleteUrlByShortName(reqeust requests.DeleteByShortNameRequest) responses.DeleteUrlByShortNameResponse {
+func (service *URLService) DeleteUrlByShortName(request requests.DeleteByShortNameRequest) responses.DeleteUrlByShortNameResponse {
 	responseChan := make(chan responses.DeleteUrlByShortNameResponse)
 
 	go func() {
-		response, err := service.URLRepository.DeleteUrlByShortName(reqeust.ShortName)
+		response, err := service.URLRepository.DeleteUrlByShortName(request.ShortName)
 		if err != nil {
 			responseChan <- responses.DeleteUrlByShortNameResponse{
 				Result: response,
@@ -195,6 +195,80 @@ func (service *URLService) DeleteUrlByShortName(reqeust requests.DeleteByShortNa
 		return responses.DeleteUrlByShortNameResponse{
 			Result: false,
 			Error:  fmt.Errorf("timeout: could not update user in time"),
+		}
+	}
+}
+
+func (service *URLService) GetUrlStatByShortName(request requests.GetUrlStatByShortNameRequest) responses.GetUrlStatByShortNameResponse {
+	responseChan := make(chan responses.GetUrlStatByShortNameResponse)
+
+	go func() {
+		response, err := service.URLRepository.GetUrlByShortName(request.ShortName)
+
+		if err != nil {
+			responseChan <- responses.GetUrlStatByShortNameResponse{
+				OriginalURL:    nil,
+				IsActive:       nil,
+				ExpiresAt:      nil,
+				ClickCount:     nil,
+				LastAccessedAt: nil,
+				Error:          fmt.Errorf("failed to get account: %w", err),
+			}
+			return
+		}
+		responseChan <- responses.GetUrlStatByShortNameResponse{
+			OriginalURL:    &response.OriginalURL,
+			IsActive:       &response.IsActive,
+			ExpiresAt:      &response.ExpiresAt,
+			ClickCount:     &response.ClickCount,
+			LastAccessedAt: response.LastAccessedAt,
+			Error:          nil,
+		}
+		return
+	}()
+
+	select {
+	case response := <-responseChan:
+		return response
+	case <-time.After(time.Second * 10):
+		return responses.GetUrlStatByShortNameResponse{
+			OriginalURL:    nil,
+			IsActive:       nil,
+			ExpiresAt:      nil,
+			ClickCount:     nil,
+			LastAccessedAt: nil,
+			Error:          fmt.Errorf("timeout: could not update user in time"),
+		}
+	}
+}
+
+func (service *URLService) GetUrlByOriginalName(request requests.GetUrlByOriginalNameRequest) responses.GetUrlByOriginalNameResponse {
+	responseChan := make(chan responses.GetUrlByOriginalNameResponse)
+
+	go func() {
+		response, err := service.URLRepository.GetUrlByOriginalName(request.OriginalName)
+
+		if err != nil {
+			responseChan <- responses.GetUrlByOriginalNameResponse{
+				OriginalURL: nil,
+				Error:       fmt.Errorf("failed to get account: %w", err),
+			}
+			return
+		}
+		responseChan <- responses.GetUrlByOriginalNameResponse{
+			OriginalURL: &response.OriginalURL,
+			Error:       nil,
+		}
+		return
+	}()
+
+	select {
+	case response := <-responseChan:
+		return response
+	case <-time.After(time.Second * 10):
+		return responses.GetUrlByOriginalNameResponse{
+			OriginalURL: nil,
+			Error:       fmt.Errorf("timeout: could not update user in time"),
 		}
 	}
 }
