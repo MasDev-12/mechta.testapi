@@ -12,5 +12,5 @@ type User struct {
 	PasswordHash string    `gorm:"column:password_hash, not null"` // Хешированный пароль
 	CreatedAt    time.Time `gorm:"column:created_at, not null"`
 	IsActive     bool      `gorm:"column:is_active;default:true"`
-	URLs         []URL     `gorm:"foreignKey:UserID"` // Связь с URL
+	URLs         []URL     `gorm:"foreignKey:UserId"` // Связь с URL
 }
