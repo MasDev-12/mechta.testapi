@@ -1,8 +1,8 @@
 {
   "database": {
     "host": "localhost",
-    "user": "postgres",
-    "password": "postgres",
+    "user": "MasudAdmin",
+    "password": "Masud1992!",
     "dbname": "GoDreamTest",
     "port": 5432,
     "sslmode": "disable",
@@ -14,7 +14,7 @@
     "connect_timeout": 10,
     "read_timeout": 30,
     "write_timeout": 30,
-    "application_name": "Mechta"
+    "application_name": "github.com/MasDev-12/mechta.testapi"
   },
   "rest_server": {
     "host": "localhost",

@@ -11,3 +11,7 @@ type CreateUserRequest struct {
 type GetUserRequest struct {
 	Id uuid.UUID `json:"id" binding:"required"`
 }
+
+type GetUserByEmailRequest struct {
+	Email string `json:"email" binding:"required,email"`
+}

@@ -103,3 +103,16 @@ func (r *URLRepository) DeleteUrlByShortName(shortName string) (bool, error) {
 	}
 	return result.RowsAffected > 0, nil
 }
+
+func (r *URLRepository) GetUrlByOriginalName(originalName string) (*entities.URL, error) {
+	var url entities.URL
+
+	result := r.dbContext.Db.Where("origin_url = ?", originalName).First(&url)
+	if result.Error != nil {
+		if result.RowsAffected == 0 {
+			return nil, fmt.Errorf("url not found")
+		}
+		return nil, result.Error
+	}
+	return &url, nil
+}

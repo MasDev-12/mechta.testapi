@@ -74,7 +74,7 @@ func (service *UserService) GetById(request requests.GetUserRequest) responses.G
 				Id:       nil,
 				Username: nil,
 				Email:    nil,
-				Error:    fmt.Errorf("failed to get account: %w", err),
+				Error:    fmt.Errorf("failed to get user: %w", err),
 			}
 			return
 		}
@@ -90,6 +90,40 @@ func (service *UserService) GetById(request requests.GetUserRequest) responses.G
 		return response
 	case <-time.After(time.Second * 10):
 		return responses.GetUserResponse{
+			Id:       nil,
+			Username: nil,
+			Email:    nil,
+			Error:    fmt.Errorf("timeout: could not update user in time"),
+		}
+	}
+}
+
+func (service *UserService) GetByEmail(request requests.GetUserByEmailRequest) responses.GetUserByEmailResponse {
+	responseChan := make(chan responses.GetUserByEmailResponse)
+
+	go func() {
+		response, err := service.UserRepository.GetUserByEmail(request.Email)
+		if err != nil {
+			responseChan <- responses.GetUserByEmailResponse{
+				Id:       nil,
+				Username: nil,
+				Email:    nil,
+				Error:    fmt.Errorf("failed to get user: %w", err),
+			}
+			return
+		}
+		responseChan <- responses.GetUserByEmailResponse{
+			Id:       &response.Id,
+			Username: &response.Username,
+			Email:    &response.Email,
+			Error:    nil,
+		}
+	}()
+	select {
+	case response := <-responseChan:
+		return response
+	case <-time.After(time.Second * 10):
+		return responses.GetUserByEmailResponse{
 			Id:       nil,
 			Username: nil,
 			Email:    nil,
