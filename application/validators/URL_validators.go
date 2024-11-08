@@ -46,8 +46,8 @@ func (urlValidator *URLValidator) UrlExists() gin.HandlerFunc {
 			Id: url.UserId,
 		})
 
-		if *userExists.Id != url.UserId {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user not exists"})
+		if userExists.Id != nil && *userExists.Id != url.UserId {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
 			c.Abort()
 			return
 		}
@@ -56,8 +56,8 @@ func (urlValidator *URLValidator) UrlExists() gin.HandlerFunc {
 			OriginalName: url.OriginalURL,
 		})
 
-		if strings.ToLower(*urlExists.OriginalURL) == strings.ToLower(url.OriginalURL) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "email exists"})
+		if urlExists.OriginalURL != nil && strings.ToLower(*urlExists.OriginalURL) == strings.ToLower(url.OriginalURL) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "url already exists"})
 			c.Abort()
 			return
 		}
@@ -81,11 +81,12 @@ func (urlValidator *URLValidator) UserExists() gin.HandlerFunc {
 			Id: userId,
 		})
 
-		if *userExists.Id != userId {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user not exists"})
+		if userExists.Id != nil && *userExists.Id != userId {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user does not exist"})
 			c.Abort()
 			return
 		}
+
 		c.Set("userId", userId)
 		c.Next()
 	}
@@ -104,8 +105,8 @@ func (urlValidator *URLValidator) ShortUrlExists() gin.HandlerFunc {
 			ShortName: link,
 		})
 
-		if strings.ToLower(shortenerExists.Url.ShortURL) != strings.ToLower(link) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "url not exists"})
+		if shortenerExists.Url != nil && strings.ToLower(shortenerExists.Url.ShortURL) != strings.ToLower(link) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "shortUrl not exists"})
 			c.Abort()
 			return
 		}

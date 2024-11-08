@@ -39,7 +39,7 @@ func (command *UserCommand) CreateCommandExecute(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, response.Error)
 			return
 		} else {
-			c.JSON(http.StatusOK, response.Result)
+			c.JSON(http.StatusOK, response)
 			return
 		}
 	case <-timeout:

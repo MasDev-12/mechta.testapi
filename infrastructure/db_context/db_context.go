@@ -37,3 +37,8 @@ func NewDbContext(settings *config.DbSetting) *DbContext {
 	}
 	return &DbContext{Db: db}
 }
+
+func (db *DbContext) ClearDatabaseAfterTests() {
+	db.Db.Exec("DELETE FROM urls")
+	db.Db.Exec("DELETE FROM users")
+}
