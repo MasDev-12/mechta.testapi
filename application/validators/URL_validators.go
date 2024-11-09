@@ -79,10 +79,16 @@ func (urlValidator *URLValidator) ValidateUserExistsForTakeOwnUrls() gin.Handler
 			return
 		}
 
-		_, userError := urlValidator.UserRepository.GetById(userId)
+		userExists, userError := urlValidator.UserRepository.GetById(userId)
 
 		if userError != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": userError.Error()})
+			c.Abort()
+			return
+		}
+
+		if userExists == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not found"})
 			c.Abort()
 			return
 		}
@@ -102,7 +108,7 @@ func (urlValidator *URLValidator) ShortUrlExists() gin.HandlerFunc {
 			return
 		}
 
-		shortenerExists, shortenerError := urlValidator.UrlRepository.GetUrlByShortName(link)
+		shortenerExists, shortenerError := urlValidator.UrlRepository.GetUrlByShortNameCheckExists(link)
 
 		if shortenerError != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "shortUrl not exists"})
@@ -110,7 +116,7 @@ func (urlValidator *URLValidator) ShortUrlExists() gin.HandlerFunc {
 			return
 		}
 		if shortenerExists == nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "shortUrl not exists"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "shortUrl not exists"})
 			c.Abort()
 			return
 		}

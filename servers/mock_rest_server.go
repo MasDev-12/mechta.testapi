@@ -71,7 +71,7 @@ func (s *MockRestServer) AddRoutes() {
 	s.router.POST("/url/shortener", s.UrlValidator.ValidateUrlForDuplicate(), s.URLCommands.CreateUrlCommandExecute)
 	s.router.GET("/url/shortener/:userId", s.UrlValidator.ValidateUserExistsForTakeOwnUrls(), s.URLQueries.GetUserUrls)
 	s.router.GET("/url/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlByShortName)
-	s.router.DELETE("/url/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.DeleteByShortName)
+	s.router.DELETE("/url/:link", s.UrlValidator.ShortUrlExists(), s.URLCommands.DeleteByShortName)
 	s.router.GET("/url/stats/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlStat)
 }
 

@@ -203,7 +203,7 @@ func (service *URLService) GetUrlStatByShortName(request requests.GetUrlStatBySh
 	responseChan := make(chan responses.GetUrlStatByShortNameResponse)
 
 	go func() {
-		response, err := service.URLRepository.GetUrlByShortName(request.ShortName)
+		response, err := service.URLRepository.GetUrlByShortNameCheckExists(request.ShortName)
 
 		if err != nil {
 			responseChan <- responses.GetUrlStatByShortNameResponse{

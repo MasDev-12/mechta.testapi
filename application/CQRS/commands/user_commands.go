@@ -19,7 +19,7 @@ func NewUserCommand(userService *services.UserService) *UserCommand {
 	}
 }
 
-// CreateUser godoc
+// CreateUserCommandExecute godoc
 // @Summary Create a new user
 // @Description Create a new user by passing user data in the request body
 // @Tags Users

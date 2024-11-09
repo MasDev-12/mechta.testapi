@@ -257,12 +257,18 @@ func TestGetUserUrlSuccess(t *testing.T) {
 
 	assert.Len(t, response.Urls, 2, "Expected 2 URLs to be returned")
 
-	for i, url := range response.Urls {
-		expectedOriginalURL := "example_url_" + strconv.Itoa(i)
-		expectedShortURL := "exm_url" + strconv.Itoa(i)
+	expectedUrls := make(map[string]entities.URL)
+	for i := 0; i < 2; i++ {
+		expectedUrls["exm_url"+strconv.Itoa(i)] = entities.URL{
+			OriginalURL: "example_url_" + strconv.Itoa(i),
+			ShortURL:    "exm_url" + strconv.Itoa(i),
+		}
+	}
 
-		assert.Equal(t, expectedOriginalURL, url.OriginalURL, "Unexpected Original URL at index %d", i)
-		assert.Equal(t, expectedShortURL, url.ShortURL, "Unexpected Short URL at index %d", i)
+	for _, url := range response.Urls {
+		expectedUrl, exists := expectedUrls[url.ShortURL]
+		assert.True(t, exists, "Unexpected Short URL: %s", url.ShortURL)
+		assert.Equal(t, expectedUrl.OriginalURL, url.OriginalURL, "Unexpected Original URL for Short URL: %s", url.ShortURL)
 	}
 }
 
@@ -483,5 +489,5 @@ func TestGetLinkStatSuccess(t *testing.T) {
 
 	assert.Equal(t, urlEntity.OriginalURL, *responseBody.OriginalURL, "Expected OriginalURL to match")
 	assert.Equal(t, urlEntity.IsActive, *responseBody.IsActive, "Expected IsActive to match")
-	assert.Equal(t, urlEntity.ClickCount+1, *responseBody.ClickCount, "Expected ClickCount to match")
+	assert.Equal(t, urlEntity.ClickCount, *responseBody.ClickCount, "Expected ClickCount to match")
 }
