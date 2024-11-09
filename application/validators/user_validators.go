@@ -3,20 +3,19 @@ package validators
 import (
 	"errors"
 	"github.com/MasDev-12/mechta.testapi/application/CQRS/requests"
-	"github.com/MasDev-12/mechta.testapi/application/services"
+	"github.com/MasDev-12/mechta.testapi/infrastructure/repositories"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 	"net/http"
-	"strings"
 )
 
 type UserValidator struct {
-	UserService *services.UserService
+	UserRepository *repositories.UserRepository
 }
 
-func NewUserValidator(userService *services.UserService) *UserValidator {
-	return &UserValidator{UserService: userService}
+func NewUserValidator(userRepository *repositories.UserRepository) *UserValidator {
+	return &UserValidator{UserRepository: userRepository}
 }
 
 func (userValidator *UserValidator) CreateUser() gin.HandlerFunc {
@@ -38,17 +37,9 @@ func (userValidator *UserValidator) CreateUser() gin.HandlerFunc {
 			return
 		}
 
-		emailExists := userValidator.UserService.GetByEmail(requests.GetUserByEmailRequest{
-			Email: user.Email,
-		})
-
-		if emailExists.Email != nil {
-			if strings.ToLower(*emailExists.Email) == strings.ToLower(user.Email) {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
-				c.Abort()
-				return
-			}
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
+		_, userError := userValidator.UserRepository.GetUserByEmail(user.Email)
+		if userError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "user already exists"})
 			c.Abort()
 			return
 		}
@@ -68,17 +59,16 @@ func (userValidator *UserValidator) UserExists() gin.HandlerFunc {
 			return
 		}
 
-		userExists := userValidator.UserService.GetById(requests.GetUserRequest{
-			Id: id,
-		})
+		userExists, userError := userValidator.UserRepository.GetById(id)
 
-		if userExists.Id == nil {
+		if userExists == nil {
 			c.JSON(http.StatusNotFound, gin.H{"error": "user not exists"})
 			c.Abort()
 			return
 		}
-		if *userExists.Id != id {
-			c.JSON(http.StatusNotFound, gin.H{"error": "user not exists"})
+
+		if userError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": userError.Error()})
 			c.Abort()
 			return
 		}

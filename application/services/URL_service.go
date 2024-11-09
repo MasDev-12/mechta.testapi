@@ -78,7 +78,7 @@ func (service *URLService) GetUserUrls(request requests.GetUserUrlsRequest) resp
 		}
 		responseChan <- responses.GetUserUrlsResponse{
 			Urls:  convertToDTO(response),
-			Error: fmt.Errorf("failed to get urls: %w", err),
+			Error: nil,
 		}
 		return
 	}()

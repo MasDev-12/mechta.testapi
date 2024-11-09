@@ -1,51 +1,44 @@
 package servers
 
 import (
-	"fmt"
 	"github.com/MasDev-12/mechta.testapi/application/CQRS/commands"
 	"github.com/MasDev-12/mechta.testapi/application/CQRS/queries"
 	"github.com/MasDev-12/mechta.testapi/application/helpers"
 	"github.com/MasDev-12/mechta.testapi/application/services"
 	"github.com/MasDev-12/mechta.testapi/application/validators"
 	"github.com/MasDev-12/mechta.testapi/config"
-	"github.com/MasDev-12/mechta.testapi/docs"
 	"github.com/MasDev-12/mechta.testapi/infrastructure/db_context"
 	"github.com/MasDev-12/mechta.testapi/infrastructure/repositories"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
 )
 
-type RestServer struct {
-	router          *gin.Engine
-	UserCommands    *commands.UserCommand
-	UserQueries     *queries.UserQueries
-	URLCommands     *commands.URLCommand
-	URLQueries      *queries.URLQueries
-	ServerSettings  *config.ServerSetting
-	DbSettings      *config.DbSetting
-	Argon2Settings  *config.Argon2Setting
-	SwaggerSettings *config.SwaggerSetting
-	UserValidator   *validators.UserValidator
-	UrlValidator    *validators.URLValidator
+type MockRestServer struct {
+	router         *gin.Engine
+	UserCommands   *commands.UserCommand
+	UserQueries    *queries.UserQueries
+	URLCommands    *commands.URLCommand
+	URLQueries     *queries.URLQueries
+	ServerSettings *config.ServerSetting
+	DbSettings     *config.DbSetting
+	Argon2Settings *config.Argon2Setting
+	UserValidator  *validators.UserValidator
+	UrlValidator   *validators.URLValidator
 }
 
-func NewRestServer(ServerSettings *config.ServerSetting,
+func NewMockRestServer(ServerSettings *config.ServerSetting,
 	DbSettings *config.DbSetting,
-	Argon2Settings *config.Argon2Setting,
-	swaggerSettings *config.SwaggerSetting) *RestServer {
-	server := &RestServer{
-		router:          gin.Default(),
-		ServerSettings:  ServerSettings,
-		DbSettings:      DbSettings,
-		Argon2Settings:  Argon2Settings,
-		SwaggerSettings: swaggerSettings,
+	Argon2Settings *config.Argon2Setting) *MockRestServer {
+	server := &MockRestServer{
+		router:         gin.Default(),
+		ServerSettings: ServerSettings,
+		DbSettings:     DbSettings,
+		Argon2Settings: Argon2Settings,
 	}
 	server.Init() // Инициализация всех компонентов
 	return server
 }
 
-func (s *RestServer) Init() {
+func (s *MockRestServer) Init() {
 	// Инициализация DbContext
 	dbContext := db_context.NewDbContext(s.DbSettings)
 
@@ -71,14 +64,7 @@ func (s *RestServer) Init() {
 	s.AddRoutes()
 }
 
-func (s *RestServer) AddRoutes() {
-	docs.SwaggerInfo.Host = s.SwaggerSettings.Host
-	docs.SwaggerInfo.Description = s.SwaggerSettings.Description
-	docs.SwaggerInfo.Title = s.SwaggerSettings.PageTitle
-	docs.SwaggerInfo.Version = s.SwaggerSettings.Version
-	docs.SwaggerInfo.BasePath = s.SwaggerSettings.BasePath
-
-	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+func (s *MockRestServer) AddRoutes() {
 
 	s.router.POST("/user/create", s.UserValidator.CreateUser(), s.UserCommands.CreateUserCommandExecute)
 	s.router.GET("/user/:id", s.UserValidator.UserExists(), s.UserQueries.GetUserByIdQuery)
@@ -89,11 +75,10 @@ func (s *RestServer) AddRoutes() {
 	s.router.GET("/url/stats/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlStat)
 }
 
-func (s *RestServer) Start() error {
-	port := fmt.Sprintf("%s:%d", s.ServerSettings.Host, s.ServerSettings.Port)
-	return s.router.Run(port)
+func (s *MockRestServer) Router() *gin.Engine {
+	return s.router
 }
 
-func (s *RestServer) Router() *gin.Engine {
-	return s.router
+func (s *MockRestServer) StartMockServer() error {
+	return nil
 }

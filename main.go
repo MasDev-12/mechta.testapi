@@ -27,7 +27,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	restServer := servers.NewRestServer(serverSetting, dbSetting, argon2Setting)
+	swaggerSetting, err := config.LoadSettingsSwagger("tsconfig.json")
+	if err != nil {
+		panic(err)
+	}
+	restServer := servers.NewRestServer(serverSetting, dbSetting, argon2Setting, swaggerSetting)
 	if err := restServer.Start(); err != nil {
 		log.Fatalf("Failed to start REST server: %v", err)
 	}

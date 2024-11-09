@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	DbSetting     DbSetting     `json:"database"`
-	ServerSetting ServerSetting `json:"rest_server"`
-	Argon2Setting Argon2Setting `json:"argon2"`
+	DbSetting      DbSetting      `json:"database"`
+	ServerSetting  ServerSetting  `json:"rest_server"`
+	Argon2Setting  Argon2Setting  `json:"argon2"`
+	SwaggerSetting SwaggerSetting `json:"swagger"`
 }
 
 type ServerSetting struct {
@@ -41,6 +42,17 @@ type Argon2Setting struct {
 	Threads    uint8  `json:"threads"`
 	KeyLength  uint32 `json:"keyLength"`
 	SaltLength uint32 `json:"saltLength"`
+}
+
+type SwaggerSetting struct {
+	Host         string `json:"host"`
+	Description  string `json:"description"`
+	PageTitle    string `json:"pageTitle"`
+	Version      string `json:"version"`
+	BasePath     string `json:"base_path"`
+	ContactName  string `json:"contact_name"`
+	ContactURL   string `json:"contact_url"`
+	ContactEmail string `json:"contact_email"`
 }
 
 func LoadSettingsDb(filePath string) (*DbSetting, error) {
@@ -89,4 +101,19 @@ func LoadSettingServer(filePath string) (*ServerSetting, error) {
 	}
 
 	return &config.ServerSetting, nil
+}
+func LoadSettingsSwagger(filePath string) (*SwaggerSetting, error) {
+	configFile, err := os.Open(filePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open config file: %v", err)
+	}
+	defer configFile.Close()
+
+	var config Config
+	decoder := json.NewDecoder(configFile)
+	if err := decoder.Decode(&config); err != nil {
+		return nil, fmt.Errorf("failed to decode config file: %v", err)
+	}
+
+	return &config.SwaggerSetting, nil
 }

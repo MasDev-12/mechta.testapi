@@ -19,7 +19,20 @@ func NewUserCommand(userService *services.UserService) *UserCommand {
 	}
 }
 
-func (command *UserCommand) CreateCommandExecute(c *gin.Context) {
+// CreateUser godoc
+// @Summary Create a new user
+// @Description Create a new user by passing user data in the request body
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param user body requests.CreateUserRequest true "User data"
+// @Success 200 {object} responses.CreateUserResponse "User successfully created"
+// @Failure 400 {object} string "Bad Request"
+// @Failure 404 {object} string "Not Found"
+// @Failure 408 {object} string "Request Timeout"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /user/create [post]
+func (command *UserCommand) CreateUserCommandExecute(c *gin.Context) {
 	var request requests.CreateUserRequest
 	user, exists := c.Get("user")
 	if !exists {

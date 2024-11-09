@@ -21,6 +21,19 @@ func NewUserQueries(userService *services.UserService) *UserQueries {
 	}
 }
 
+// GetUserById godoc
+// @Summary Get user by id
+// @Description Get a user by passing the user ID in the query parameters
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param id path string true "User ID"
+// @Success 200 {object} responses.GetUserResponse "User successfully retrieved"
+// @Failure 400 {object} string "Bad Request"
+// @Failure 404 {object} string "User Not Found"
+// @Failure 408 {object} string "Request Timeout"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /user/{id} [get]
 func (query *UserQueries) GetUserByIdQuery(c *gin.Context) {
 	id, exists := c.Get("id")
 	if !exists {

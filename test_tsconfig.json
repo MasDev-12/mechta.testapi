@@ -3,7 +3,7 @@
     "host": "localhost",
     "user": "MasudAdmin",
     "password": "Masud1992!",
-    "dbname": "GoDreamDb",
+    "dbname": "GoDreamDbTest",
     "port": 5432,
     "sslmode": "disable",
     "max_connections" : 10,
@@ -18,7 +18,7 @@
   },
   "rest_server": {
     "host": "localhost",
-    "port": 8081
+    "port": 8082
   },
   "argon2": {
     "memory": 65536,
@@ -26,15 +26,5 @@
     "threads": 2,
     "keyLength": 32,
     "saltLength": 16
-  },
-  "swagger": {
-    "host" : "localhost:8081",
-    "description" : "Example api for test Dream",
-    "page_title" : "TestDreamApi",
-    "version" : "V1",
-    "base_path" : "/api/v1",
-    "contact_name" : "Masud",
-    "contact_url" : "http://example.com",
-    "contact_email" : "mukanmasud@gmail.com"
   }
 }

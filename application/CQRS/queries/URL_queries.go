@@ -21,6 +21,19 @@ func NewURLQueries(urlService *services.URLService) *URLQueries {
 	}
 }
 
+// GetUserUrls godoc
+// @Summary Get all URLs created by a user
+// @Description Get all shortened URLs by providing a user ID in the request URL
+// @Tags URLs
+// @Accept  json
+// @Produce  json
+// @Param userId path string true "User ID"
+// @Success 200 {object} responses.GetUserUrlsResponse "Successfully retrieved user URLs"
+// @Failure 400 {object} string "Invalid user ID"
+// @Failure 404 {object} string "No URLs found for the user"
+// @Failure 408 {object} string "Request timed out"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /url/shortener/{userId} [get]
 func (query *URLQueries) GetUserUrls(c *gin.Context) {
 	userId, exists := c.Get("userId")
 	if !exists {
@@ -55,6 +68,19 @@ func (query *URLQueries) GetUserUrls(c *gin.Context) {
 	}
 }
 
+// GetUrlByShortName godoc
+// @Summary Get original URL by short name
+// @Description Retrieve the original URL by providing the short URL in the request
+// @Tags URLs
+// @Accept  json
+// @Produce  json
+// @Param link path string true "Short URL"
+// @Success 200 {object} responses.GetUrlByShortNameResponse "Successfully retrieved the original URL"
+// @Failure 400 {object} string "Invalid link"
+// @Failure 404 {object} string "URL not found"
+// @Failure 408 {object} string "Request timed out"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /url/{link} [get]
 func (query *URLQueries) GetUrlByShortName(c *gin.Context) {
 	link, exists := c.Get("link")
 	if !exists {
@@ -89,7 +115,20 @@ func (query *URLQueries) GetUrlByShortName(c *gin.Context) {
 	}
 }
 
-func (query *URLQueries) Delete(c *gin.Context) {
+// DeleteByShortName godoc
+// @Summary DeleteByShortName URL by short name
+// @Description DeleteByShortName a URL by providing its short name in the request
+// @Tags URLs
+// @Accept  json
+// @Produce  json
+// @Param link path string true "Short URL to delete"
+// @Success 200 {object} responses.DeleteUrlByShortNameResponse "Successfully deleted the URL"
+// @Failure 400 {object} string "Invalid link"
+// @Failure 404 {object} string "URL not found"
+// @Failure 408 {object} string "Request timed out"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /url/{link} [delete]
+func (query *URLQueries) DeleteByShortName(c *gin.Context) {
 	link, exists := c.Get("link")
 	if !exists {
 		c.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid link"})
@@ -122,6 +161,19 @@ func (query *URLQueries) Delete(c *gin.Context) {
 	}
 }
 
+// GetUrlStat godoc
+// @Summary Get URL statistics by short name
+// @Description Get statistics for a URL using its short name
+// @Tags URLs
+// @Accept  json
+// @Produce  json
+// @Param link path string true "Short URL to get statistics for"
+// @Success 200 {object} responses.GetUrlStatByShortNameResponse "Successfully retrieved URL statistics"
+// @Failure 400 {object} string "Invalid link"
+// @Failure 404 {object} string "URL not found"
+// @Failure 408 {object} string "Request timed out"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /url/stats/{link} [get]
 func (query *URLQueries) GetUrlStat(c *gin.Context) {
 	link, exists := c.Get("link")
 	if !exists {

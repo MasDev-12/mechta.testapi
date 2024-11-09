@@ -1,0 +1,368 @@
+definitions:
+  dto.URLDto:
+    properties:
+      click_count:
+        type: integer
+      expires_at:
+        type: string
+      id:
+        type: string
+      is_active:
+        type: boolean
+      last_accessed_at:
+        description: Опускается, если nil
+        type: string
+      original_url:
+        type: string
+      short_url:
+        type: string
+      user_id:
+        description: Внешний ключ на пользователя
+        type: string
+    type: object
+  requests.CreateURLRequest:
+    properties:
+      original_url:
+        type: string
+      user_id:
+        type: string
+    required:
+    - original_url
+    - user_id
+    type: object
+  requests.CreateUserRequest:
+    properties:
+      email:
+        description: Валидация для корректного email
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  responses.CreateUrlResponse:
+    properties:
+      error: {}
+      id:
+        type: string
+      short_url:
+        type: string
+    type: object
+  responses.CreateUserResponse:
+    properties:
+      email:
+        type: string
+      error: {}
+      id:
+        type: string
+      username:
+        type: string
+    type: object
+  responses.DeleteUrlByShortNameResponse:
+    properties:
+      error: {}
+      result:
+        type: boolean
+    type: object
+  responses.GetUrlByShortNameResponse:
+    properties:
+      error: {}
+      url:
+        $ref: '#/definitions/dto.URLDto'
+    type: object
+  responses.GetUrlStatByShortNameResponse:
+    properties:
+      click_count:
+        type: integer
+      error: {}
+      expires_at:
+        type: string
+      is_active:
+        type: boolean
+      last_accessed_at:
+        type: string
+      original_url:
+        type: string
+    type: object
+  responses.GetUserResponse:
+    properties:
+      email:
+        type: string
+      error: {}
+      id:
+        type: string
+      username:
+        type: string
+    type: object
+  responses.GetUserUrlsResponse:
+    properties:
+      error: {}
+      urls:
+        items:
+          $ref: '#/definitions/dto.URLDto'
+        type: array
+    type: object
+info:
+  contact: {}
+paths:
+  /url/{link}:
+    delete:
+      consumes:
+      - application/json
+      description: DeleteByShortName a URL by providing its short name in the request
+      parameters:
+      - description: Short URL to delete
+        in: path
+        name: link
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully deleted the URL
+          schema:
+            $ref: '#/definitions/responses.DeleteUrlByShortNameResponse'
+        "400":
+          description: Invalid link
+          schema:
+            type: string
+        "404":
+          description: URL not found
+          schema:
+            type: string
+        "408":
+          description: Request timed out
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: DeleteByShortName URL by short name
+      tags:
+      - URLs
+    get:
+      consumes:
+      - application/json
+      description: Retrieve the original URL by providing the short URL in the request
+      parameters:
+      - description: Short URL
+        in: path
+        name: link
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved the original URL
+          schema:
+            $ref: '#/definitions/responses.GetUrlByShortNameResponse'
+        "400":
+          description: Invalid link
+          schema:
+            type: string
+        "404":
+          description: URL not found
+          schema:
+            type: string
+        "408":
+          description: Request timed out
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get original URL by short name
+      tags:
+      - URLs
+  /url/shortener:
+    post:
+      consumes:
+      - application/json
+      description: Create a shortened URL by passing the URL data in the request body
+      parameters:
+      - description: URL data
+        in: body
+        name: url
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateURLRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: URL successfully shortened
+          schema:
+            $ref: '#/definitions/responses.CreateUrlResponse'
+        "400":
+          description: Invalid URL data
+          schema:
+            type: string
+        "408":
+          description: Request timed out
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create a new shortened URL
+      tags:
+      - URLs
+  /url/shortener/{userId}:
+    get:
+      consumes:
+      - application/json
+      description: Get all shortened URLs by providing a user ID in the request URL
+      parameters:
+      - description: User ID
+        in: path
+        name: userId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved user URLs
+          schema:
+            $ref: '#/definitions/responses.GetUserUrlsResponse'
+        "400":
+          description: Invalid user ID
+          schema:
+            type: string
+        "404":
+          description: No URLs found for the user
+          schema:
+            type: string
+        "408":
+          description: Request timed out
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get all URLs created by a user
+      tags:
+      - URLs
+  /url/stats/{link}:
+    get:
+      consumes:
+      - application/json
+      description: Get statistics for a URL using its short name
+      parameters:
+      - description: Short URL to get statistics for
+        in: path
+        name: link
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successfully retrieved URL statistics
+          schema:
+            $ref: '#/definitions/responses.GetUrlStatByShortNameResponse'
+        "400":
+          description: Invalid link
+          schema:
+            type: string
+        "404":
+          description: URL not found
+          schema:
+            type: string
+        "408":
+          description: Request timed out
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get URL statistics by short name
+      tags:
+      - URLs
+  /user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a user by passing the user ID in the query parameters
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully retrieved
+          schema:
+            $ref: '#/definitions/responses.GetUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: User Not Found
+          schema:
+            type: string
+        "408":
+          description: Request Timeout
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Get user by id
+      tags:
+      - Users
+  /user/create:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user by passing user data in the request body
+      parameters:
+      - description: User data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/requests.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: User successfully created
+          schema:
+            $ref: '#/definitions/responses.CreateUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+        "404":
+          description: Not Found
+          schema:
+            type: string
+        "408":
+          description: Request Timeout
+          schema:
+            type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: string
+      summary: Create a new user
+      tags:
+      - Users
+swagger: "2.0"

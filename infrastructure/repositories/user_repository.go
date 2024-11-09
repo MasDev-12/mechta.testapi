@@ -1,10 +1,12 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"github.com/MasDev-12/mechta.testapi/domain/entities"
 	"github.com/MasDev-12/mechta.testapi/infrastructure/db_context"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type UserRepository struct {
@@ -31,8 +33,8 @@ func (r *UserRepository) GetById(id uuid.UUID) (*entities.User, error) {
 	var user entities.User
 	result := r.dbContext.Db.First(&user, id)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("user not found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, result.Error
 	}
@@ -67,8 +69,8 @@ func (r *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 	var user entities.User
 	result := r.dbContext.Db.Where("email = ?", email).Find(&user)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("user not found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, result.Error
 	}

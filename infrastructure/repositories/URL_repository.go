@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 	"github.com/MasDev-12/mechta.testapi/domain/entities"
 	"github.com/MasDev-12/mechta.testapi/infrastructure/db_context"
 	"github.com/google/uuid"
@@ -22,8 +21,8 @@ func (r *URLRepository) GetAll() ([]entities.URL, error) {
 	var urls []entities.URL
 	result := r.dbContext.Db.Find(&urls)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("no urls found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, result.Error
 	}
@@ -34,8 +33,8 @@ func (r *URLRepository) GetById(id uuid.UUID) (*entities.URL, error) {
 	var url entities.URL
 	result := r.dbContext.Db.First(&url, id)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("user not found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return &entities.URL{}, result.Error
 	}
