@@ -61,21 +61,25 @@ func (s *RestServer) Init() {
 	s.URLQueries = queries.NewURLQueries(urlService)
 
 	s.UserValidator = validators.NewUserValidator(userService)
-	s.UrlValidator = validators.NewURLValidators(urlService, userService)
+	s.UrlValidator = validators.NewURLValidators(urlRepository, userRepository)
 	s.AddRoutes()
 }
 
 func (s *RestServer) AddRoutes() {
-	s.router.POST("/user/add", s.UserValidator.CreateUser(), s.UserCommands.CreateCommandExecute)
-	s.router.GET("/user/{:id}", s.UserValidator.UserExists(), s.UserQueries.GetUserByIdQuery)
-	s.router.GET("/url/shortener", s.UrlValidator.UrlExists(), s.URLCommands.CreateUrlCommandExecute)
-	s.router.GET("/url/shortener/{:userId}", s.UrlValidator.UrlExists(), s.URLQueries.GetUserUrls)
-	s.router.GET("/url/{:link}", s.UrlValidator.UrlExists(), s.URLQueries.GetUrlByShortName)
-	s.router.DELETE("/url/{:link}", s.UrlValidator.UrlExists(), s.URLQueries.Delete)
-	s.router.GET("/url/stats/{:link}", s.UrlValidator.UrlExists(), s.URLQueries.GetUrlStat)
+	s.router.POST("/user/create", s.UserValidator.CreateUser(), s.UserCommands.CreateCommandExecute)
+	s.router.GET("/user/:id", s.UserValidator.UserExists(), s.UserQueries.GetUserByIdQuery)
+	s.router.POST("/url/shortener", s.UrlValidator.ValidateUrlForDuplicate(), s.URLCommands.CreateUrlCommandExecute)
+	s.router.GET("/url/shortener/:userId", s.UrlValidator.ValidateUserExistsForTakeOwnUrls(), s.URLQueries.GetUserUrls)
+	s.router.GET("/url/:link", s.UrlValidator.UrlExists(), s.URLQueries.GetUrlByShortName)
+	s.router.DELETE("/url/:link", s.UrlValidator.UrlExists(), s.URLQueries.Delete)
+	s.router.GET("/url/stats/:link", s.UrlValidator.UrlExists(), s.URLQueries.GetUrlStat)
 }
 
 func (s *RestServer) Start() error {
 	port := fmt.Sprintf("%s:%d", s.ServerSettings.Host, s.ServerSettings.Port)
 	return s.router.Run(port)
+}
+
+func (s *RestServer) Router() *gin.Engine {
+	return s.router
 }

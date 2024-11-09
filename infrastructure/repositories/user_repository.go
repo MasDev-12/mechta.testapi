@@ -34,17 +34,17 @@ func (r *UserRepository) GetById(id uuid.UUID) (*entities.User, error) {
 		if result.RowsAffected == 0 {
 			return nil, fmt.Errorf("user not found")
 		}
-		return &entities.User{}, result.Error
+		return nil, result.Error
 	}
 	return &user, nil
 }
 
-func (r *UserRepository) Add(user entities.User) (bool, error) {
+func (r *UserRepository) Add(user entities.User) (*entities.User, error) {
 	result := r.dbContext.Db.Create(&user)
 	if result.Error != nil {
-		return false, result.Error
+		return nil, result.Error
 	}
-	return result.RowsAffected > 0, nil
+	return &user, nil
 }
 
 func (r *UserRepository) Update(user entities.User) (bool, error) {
@@ -70,7 +70,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 		if result.RowsAffected == 0 {
 			return nil, fmt.Errorf("user not found")
 		}
-		return &entities.User{}, result.Error
+		return nil, result.Error
 	}
 	return &user, nil
 }

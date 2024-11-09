@@ -3,7 +3,7 @@ package validators
 import (
 	"errors"
 	"github.com/MasDev-12/mechta.testapi/application/CQRS/requests"
-	"github.com/MasDev-12/mechta.testapi/application/services"
+	"github.com/MasDev-12/mechta.testapi/infrastructure/repositories"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
@@ -12,15 +12,84 @@ import (
 )
 
 type URLValidator struct {
-	URLService  *services.URLService
-	UserService *services.UserService
+	UrlRepository  *repositories.URLRepository
+	UserRepository *repositories.UserRepository
 }
 
-func NewURLValidators(urlService *services.URLService,
-	userService *services.UserService) *URLValidator {
+func NewURLValidators(urlRepository *repositories.URLRepository,
+	userRepository *repositories.UserRepository) *URLValidator {
 	return &URLValidator{
-		URLService:  urlService,
-		UserService: userService}
+		UrlRepository:  urlRepository,
+		UserRepository: userRepository}
+}
+
+func (urlValidator *URLValidator) ValidateUrlForDuplicate() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var url requests.CreateURLRequest
+		if err := c.ShouldBindJSON(&url); err != nil {
+			var validationErrors validator.ValidationErrors
+			exists := errors.As(err, &validationErrors)
+			if exists == true {
+				errorsMap := make(map[string]string)
+				for _, fieldError := range validationErrors {
+					errorsMap[fieldError.Field()] = fieldError.Error()
+				}
+				c.JSON(http.StatusBadRequest, gin.H{"error": errorsMap})
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			}
+			c.Abort()
+			return
+		}
+
+		_, userError := urlValidator.UserRepository.GetById(url.UserId)
+
+		if userError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": userError.Error()})
+			c.Abort()
+			return
+		}
+
+		urlExists, urlError := urlValidator.UrlRepository.GetUrlByOriginalName(url.OriginalURL)
+
+		if urlError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": urlError.Error()})
+			c.Abort()
+			return
+		}
+
+		if urlExists != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "url already exists"})
+			c.Abort()
+			return
+		}
+
+		c.Set("url", url)
+		c.Next()
+	}
+}
+
+func (urlValidator *URLValidator) ValidateUserExistsForTakeOwnUrls() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userIdParam := c.Param("userId")
+		userId, err := uuid.Parse(userIdParam)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid user Id"})
+			c.Abort()
+			return
+		}
+
+		_, userError := urlValidator.UserRepository.GetById(userId)
+
+		if userError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": userError.Error()})
+			c.Abort()
+			return
+		}
+
+		c.Set("userId", userId)
+		c.Next()
+	}
 }
 
 func (urlValidator *URLValidator) UrlExists() gin.HandlerFunc {
@@ -42,22 +111,24 @@ func (urlValidator *URLValidator) UrlExists() gin.HandlerFunc {
 			return
 		}
 
-		userExists := urlValidator.UserService.GetById(requests.GetUserRequest{
-			Id: url.UserId,
-		})
+		_, userError := urlValidator.UserRepository.GetById(url.UserId)
 
-		if *userExists.Id != url.UserId {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user not exists"})
+		if userError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": userError.Error()})
 			c.Abort()
 			return
 		}
 
-		urlExists := urlValidator.URLService.GetUrlByOriginalName(requests.GetUrlByOriginalNameRequest{
-			OriginalName: url.OriginalURL,
-		})
+		urlExists, urlError := urlValidator.UrlRepository.GetUrlByOriginalName(url.OriginalURL)
 
-		if strings.ToLower(*urlExists.OriginalURL) == strings.ToLower(url.OriginalURL) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "email exists"})
+		if urlError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": urlError.Error()})
+			c.Abort()
+			return
+		}
+
+		if urlExists == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "url doesn't exists"})
 			c.Abort()
 			return
 		}
@@ -77,15 +148,14 @@ func (urlValidator *URLValidator) UserExists() gin.HandlerFunc {
 			return
 		}
 
-		userExists := urlValidator.UserService.GetById(requests.GetUserRequest{
-			Id: userId,
-		})
+		_, userError := urlValidator.UserRepository.GetById(userId)
 
-		if *userExists.Id != userId {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user not exists"})
+		if userError != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": userError.Error()})
 			c.Abort()
 			return
 		}
+
 		c.Set("userId", userId)
 		c.Next()
 	}
@@ -98,14 +168,18 @@ func (urlValidator *URLValidator) ShortUrlExists() gin.HandlerFunc {
 		if link == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid shortener name"})
 			c.Abort()
+			return
 		}
 
-		shortenerExists := urlValidator.URLService.GetUrlByShortName(requests.GetUrlByShortNameRequest{
-			ShortName: link,
-		})
+		shortenerExists, shortenerError := urlValidator.UrlRepository.GetUrlByShortName(link)
 
-		if strings.ToLower(shortenerExists.Url.ShortURL) != strings.ToLower(link) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "url not exists"})
+		if shortenerError != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "shortUrl not exists"})
+			c.Abort()
+			return
+		}
+		if shortenerExists == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "shortUrl not exists"})
 			c.Abort()
 			return
 		}

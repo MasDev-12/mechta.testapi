@@ -42,14 +42,18 @@ func (service *UserService) Create(request requests.CreateUserRequest) responses
 
 		if err != nil {
 			responseChan <- responses.CreateUserResponse{
-				Result: response,
-				Error:  err,
+				Id:       nil,
+				Username: nil,
+				Email:    nil,
+				Error:    err,
 			}
 			return
 		}
 		responseChan <- responses.CreateUserResponse{
-			Result: response,
-			Error:  nil,
+			Id:       &response.Id,
+			Username: &response.Username,
+			Email:    &response.Email,
+			Error:    nil,
 		}
 		return
 	}()
@@ -58,8 +62,10 @@ func (service *UserService) Create(request requests.CreateUserRequest) responses
 		return response
 	case <-time.After(time.Second * 10):
 		return responses.CreateUserResponse{
-			Result: false,
-			Error:  fmt.Errorf("timeout: could not add user in time"),
+			Id:       nil,
+			Username: nil,
+			Email:    nil,
+			Error:    fmt.Errorf("timeout: could not add user in time"),
 		}
 	}
 }

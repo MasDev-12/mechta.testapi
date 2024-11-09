@@ -42,8 +42,13 @@ func (userValidator *UserValidator) CreateUser() gin.HandlerFunc {
 			Email: user.Email,
 		})
 
-		if strings.ToLower(*emailExists.Email) == strings.ToLower(user.Email) {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "email exists"})
+		if emailExists.Email != nil {
+			if strings.ToLower(*emailExists.Email) == strings.ToLower(user.Email) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
+				c.Abort()
+				return
+			}
+			c.JSON(http.StatusBadRequest, gin.H{"error": "user already exist"})
 			c.Abort()
 			return
 		}
@@ -67,8 +72,13 @@ func (userValidator *UserValidator) UserExists() gin.HandlerFunc {
 			Id: id,
 		})
 
+		if userExists.Id == nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not exists"})
+			c.Abort()
+			return
+		}
 		if *userExists.Id != id {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user not exists"})
+			c.JSON(http.StatusNotFound, gin.H{"error": "user not exists"})
 			c.Abort()
 			return
 		}

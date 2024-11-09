@@ -4,7 +4,7 @@ import "github.com/google/uuid"
 
 type CreateUserRequest struct {
 	Username string `json:"username" binding:"required"`
-	Email    string `json:"email" binding:"required,email"` // Валидация для корректного email
+	Email    string `json:"email" binding:"required"` // Валидация для корректного email
 	Password string `json:"password" binding:"required"`
 }
 
@@ -13,5 +13,5 @@ type GetUserRequest struct {
 }
 
 type GetUserByEmailRequest struct {
-	Email string `json:"email" binding:"required,email"`
+	Email string `json:"email" binding:"required"`
 }

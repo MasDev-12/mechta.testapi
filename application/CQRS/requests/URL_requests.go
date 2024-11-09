@@ -3,12 +3,12 @@ package requests
 import "github.com/google/uuid"
 
 type CreateURLRequest struct {
-	OriginalURL string    `json:"original_url" binding:"required,url"`
-	UserId      uuid.UUID `json:"user_id" binding:"required,user_id"`
+	OriginalURL string    `json:"original_url" binding:"required"`
+	UserId      uuid.UUID `json:"user_id" binding:"required"`
 }
 
 type GetUserUrlsRequest struct {
-	UserId uuid.UUID `json:"user_id" binding:"required,user_id"`
+	UserId uuid.UUID `json:"user_id" binding:"required"`
 }
 
 type GetURLRequest struct {
