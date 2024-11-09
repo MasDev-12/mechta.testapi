@@ -34,7 +34,7 @@ func (r *UserRepository) GetById(id uuid.UUID) (*entities.User, error) {
 		if result.RowsAffected == 0 {
 			return nil, fmt.Errorf("user not found")
 		}
-		return &entities.User{}, result.Error
+		return nil, result.Error
 	}
 	return &user, nil
 }
@@ -70,7 +70,7 @@ func (r *UserRepository) GetUserByEmail(email string) (*entities.User, error) {
 		if result.RowsAffected == 0 {
 			return nil, fmt.Errorf("user not found")
 		}
-		return &entities.User{}, result.Error
+		return nil, result.Error
 	}
 	return &user, nil
 }

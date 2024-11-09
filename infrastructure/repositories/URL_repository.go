@@ -1,11 +1,13 @@
 package repositories
 
 import (
+	"errors"
 	"fmt"
 	"github.com/MasDev-12/mechta.testapi/domain/entities"
 	"github.com/MasDev-12/mechta.testapi/infrastructure/db_context"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
+	"strings"
 )
 
 type URLRepository struct {
@@ -41,6 +43,8 @@ func (r *URLRepository) GetById(id uuid.UUID) (*entities.URL, error) {
 }
 
 func (r *URLRepository) Add(URL entities.URL) (entities.URL, error) {
+	URL.OriginalURL = strings.ToLower(URL.OriginalURL)
+	URL.ShortURL = strings.ToLower(URL.ShortURL)
 	result := r.dbContext.Db.Create(&URL)
 	if result.Error != nil {
 		return entities.URL{}, result.Error
@@ -49,6 +53,8 @@ func (r *URLRepository) Add(URL entities.URL) (entities.URL, error) {
 }
 
 func (r *URLRepository) Update(URL entities.URL) (bool, error) {
+	URL.OriginalURL = strings.ToLower(URL.OriginalURL)
+	URL.ShortURL = strings.ToLower(URL.ShortURL)
 	result := r.dbContext.Db.Save(&URL)
 	if result.Error != nil {
 		return false, result.Error
@@ -68,8 +74,8 @@ func (r *URLRepository) GetUserUrls(userId uuid.UUID) ([]entities.URL, error) {
 	var urls []entities.URL
 	result := r.dbContext.Db.Where("user_id = ?", userId).Find(&urls)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("url not found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return urls, result.Error
 	}
@@ -79,10 +85,12 @@ func (r *URLRepository) GetUserUrls(userId uuid.UUID) ([]entities.URL, error) {
 func (r *URLRepository) GetUrlByShortName(shortName string) (*entities.URL, error) {
 	var url entities.URL
 
+	shortName = strings.ToLower(shortName)
+
 	result := r.dbContext.Db.Where("short_url = ?", shortName).First(&url)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("url not found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, result.Error
 	}
@@ -97,6 +105,7 @@ func (r *URLRepository) GetUrlByShortName(shortName string) (*entities.URL, erro
 }
 
 func (r *URLRepository) DeleteUrlByShortName(shortName string) (bool, error) {
+	shortName = strings.ToLower(shortName)
 	result := r.dbContext.Db.Where("short_url = ?", shortName).Delete(&entities.URL{})
 	if result.Error != nil {
 		return false, result.Error
@@ -107,10 +116,12 @@ func (r *URLRepository) DeleteUrlByShortName(shortName string) (bool, error) {
 func (r *URLRepository) GetUrlByOriginalName(originalName string) (*entities.URL, error) {
 	var url entities.URL
 
-	result := r.dbContext.Db.Where("origin_url = ?", originalName).First(&url)
+	lowerOriginalName := strings.ToLower(originalName)
+
+	result := r.dbContext.Db.Where("origin_url = ?", lowerOriginalName).First(&url)
 	if result.Error != nil {
-		if result.RowsAffected == 0 {
-			return nil, fmt.Errorf("url not found")
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
 		}
 		return nil, result.Error
 	}

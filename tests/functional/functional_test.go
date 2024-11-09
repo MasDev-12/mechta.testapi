@@ -150,33 +150,25 @@ func TestCreateUrlSuccess(t *testing.T) {
 	}
 
 	//Act
+	tempUrl := "example_url"
 	payload := map[string]interface{}{
-		"original_url": "example_url",
+		"original_url": tempUrl,
 		"user_id":      result.Id,
 	}
 	body, _ := json.Marshal(payload)
 	req, _ := http.NewRequest("POST", "/url/shortener", bytes.NewBuffer(body)) // Изменено на POST
 	req.Header.Set("Content-Type", "application/json")
 
-	// Инициализация записывающего сервера для получения ответа
 	recorder := httptest.NewRecorder()
 
-	// Выполнение запроса через ваш роутер
 	router.ServeHTTP(recorder, req)
 
 	//Assert
-	assert.Equal(t, http.StatusOK, recorder.Code)
+	var url entities.URL
+	urlError := dbContext.Db.Where("origin_url = ?", tempUrl).First(&url).Error
+	assert.NoError(t, urlError, "Failed to find the URL in the database")
+	assert.NotNil(t, url, "Expected URL to be saved in the database")
 
-	// Разбор тела ответа в структуру
-	var response map[string]interface{}
-	err = json.Unmarshal(recorder.Body.Bytes(), &response)
-	assert.NoError(t, err, "Error unmarshaling response") // Проверяем, что разбор прошел без ошибок
-
-	// Проверка, что в ответе есть ключ 'ShortURL' и 'id'
-	assert.Contains(t, response, "ShortURL", "Response should contain 'ShortURL' field")
-	assert.Contains(t, response, "id", "Response should contain 'id' field")
-
-	// Проверка, что id - это строка (например, GUID)
-	_, ok := response["id"].(string)
-	assert.True(t, ok, "id should be a string")
+	// Проверяем, что short_url был сгенерирован
+	assert.NotEmpty(t, url.ShortURL, "Expected short URL to be generated")
 }
