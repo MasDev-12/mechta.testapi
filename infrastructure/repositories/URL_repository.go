@@ -98,8 +98,28 @@ func (r *URLRepository) GetUrlByShortName(shortName string) (*entities.URL, erro
 	if updateResult.Error != nil {
 		return nil, updateResult.Error
 	}
+	var updatedUrl entities.URL
+	selectResult := r.dbContext.Db.Where("short_url = ?", shortName).First(&updatedUrl)
+	if selectResult.Error != nil {
+		return nil, selectResult.Error
+	}
 
-	// Вернем обновленный объект URL
+	return &updatedUrl, nil
+}
+
+func (r *URLRepository) GetUrlByShortNameCheckExists(shortName string) (*entities.URL, error) {
+	var url entities.URL
+
+	shortName = strings.ToLower(shortName)
+
+	result := r.dbContext.Db.Where("short_url = ?", shortName).First(&url)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+
 	return &url, nil
 }
 

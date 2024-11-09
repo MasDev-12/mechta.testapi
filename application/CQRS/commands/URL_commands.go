@@ -6,6 +6,7 @@ import (
 	"github.com/MasDev-12/mechta.testapi/application/services"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -19,7 +20,7 @@ func NewURLCommand(urlService *services.URLService) *URLCommand {
 	}
 }
 
-// CreateUrl godoc
+// CreateUrlCommandExecute godoc
 // @Summary Create a new shortened URL
 // @Description Create a shortened URL by passing the URL data in the request body
 // @Tags URLs
@@ -54,6 +55,52 @@ func (command *URLCommand) CreateUrlCommandExecute(c *gin.Context) {
 			c.JSON(http.StatusOK, response)
 			return
 		}
+	case <-timeout:
+		c.JSON(http.StatusRequestTimeout, gin.H{"Error": "Request timed out after 10 seconds"})
+		return
+	}
+}
+
+// DeleteByShortName godoc
+// @Summary DeleteByShortName URL by short name
+// @Description DeleteByShortName a URL by providing its short name in the request
+// @Tags URLs
+// @Accept  json
+// @Produce  json
+// @Param link path string true "Short URL to delete"
+// @Success 200 {object} responses.DeleteUrlByShortNameResponse "Successfully deleted the URL"
+// @Failure 400 {object} string "Invalid link"
+// @Failure 404 {object} string "URL not found"
+// @Failure 408 {object} string "Request timed out"
+// @Failure 500 {object} string "Internal Server Error"
+// @Router /url/{link} [delete]
+func (command *URLCommand) DeleteByShortName(c *gin.Context) {
+	link, exists := c.Get("link")
+	if !exists {
+		c.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid link"})
+		return
+	}
+	responseChan := make(chan responses.DeleteUrlByShortNameResponse)
+	timeout := time.After(10 * time.Second)
+	go func() {
+		responseChan <- command.URLService.DeleteUrlByShortName(requests.DeleteByShortNameRequest{
+			ShortName: link.(string),
+		})
+	}()
+
+	select {
+	case response := <-responseChan:
+		if response.Error != nil {
+			if strings.Contains(response.Error.Error(), "url not found") {
+				c.JSON(http.StatusNotFound, gin.H{"Error": response.Error.Error()})
+				return // 404 если url не найден
+			} else {
+				c.JSON(http.StatusBadRequest, gin.H{"Error": response.Error.Error()})
+				return // Другие ошибки
+			}
+		}
+		c.JSON(http.StatusOK, response)
+		return
 	case <-timeout:
 		c.JSON(http.StatusRequestTimeout, gin.H{"Error": "Request timed out after 10 seconds"})
 		return

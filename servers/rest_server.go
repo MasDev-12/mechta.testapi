@@ -80,13 +80,13 @@ func (s *RestServer) AddRoutes() {
 
 	s.router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	s.router.POST("/user/create", s.UserValidator.CreateUser(), s.UserCommands.CreateUserCommandExecute)
-	s.router.GET("/user/:id", s.UserValidator.UserExists(), s.UserQueries.GetUserByIdQuery)
-	s.router.POST("/url/shortener", s.UrlValidator.ValidateUrlForDuplicate(), s.URLCommands.CreateUrlCommandExecute)
-	s.router.GET("/url/shortener/:userId", s.UrlValidator.ValidateUserExistsForTakeOwnUrls(), s.URLQueries.GetUserUrls)
-	s.router.GET("/url/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlByShortName)
-	s.router.DELETE("/url/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.DeleteByShortName)
-	s.router.GET("/url/stats/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlStat)
+	s.router.POST("/api/v1/user/create", s.UserValidator.CreateUser(), s.UserCommands.CreateUserCommandExecute)
+	s.router.GET("/api/v1/user/:id", s.UserValidator.UserExists(), s.UserQueries.GetUserByIdQuery)
+	s.router.POST("/api/v1/url/shortener", s.UrlValidator.ValidateUrlForDuplicate(), s.URLCommands.CreateUrlCommandExecute)
+	s.router.GET("/api/v1/url/shortener/:userId", s.UrlValidator.ValidateUserExistsForTakeOwnUrls(), s.URLQueries.GetUserUrls)
+	s.router.GET("/api/v1/url/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlByShortName)
+	s.router.DELETE("/api/v1/url/:link", s.UrlValidator.ShortUrlExists(), s.URLCommands.DeleteByShortName)
+	s.router.GET("/api/v1/url/stats/:link", s.UrlValidator.ShortUrlExists(), s.URLQueries.GetUrlStat)
 }
 
 func (s *RestServer) Start() error {
